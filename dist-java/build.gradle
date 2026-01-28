@@ -1,0 +1,96 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+}
+
+group = 'com.github.lfoppiano'
+version = '0.2.1'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+def osName = System.getProperty("os.name").toLowerCase()
+def osArch = System.getProperty("os.arch").toLowerCase()
+
+// Compile native libs using CMake
+task buildNative {
+    doLast {
+        def buildDir = file('../build')
+        if (!buildDir.exists()) {
+            buildDir.mkdirs()
+        }
+        
+        // Find JAVA_HOME
+        def javaHome = System.getenv("JAVA_HOME")
+        if (javaHome == null) {
+            // fallback to current JVM home, might be JRE though
+             javaHome = System.getProperty("java.home")
+             if (javaHome.endsWith("jre")) {
+                 javaHome = javaHome.substring(0, javaHome.length() - 4)
+             }
+        }
+
+        exec {
+            workingDir '../build'
+            // We pass -fPIC via CMakeLists.txt usually, but good to ensure
+            commandLine 'cmake', '..', "-DJAVA_HOME=${javaHome}"
+        }
+        exec {
+            workingDir '../build'
+            commandLine 'make', 'blingfirejni' 
+        }
+    }
+}
+
+// copy native libs to resources
+task copyNativeLibs(type: Copy) {
+    dependsOn buildNative
+    from('../build') {
+        include 'libblingfirejni.so'
+        include 'libblingfirejni.dylib'
+        include 'blingfirejni.dll'
+    }
+    // Package into 'resources' so it goes into the JAR
+    into 'src/main/resources' 
+}
+
+// Clean up resources before processing to avoid stale libs
+processResources.dependsOn copyNativeLibs
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = 'BlingFire Java'
+                description = 'Java bindings for Microsoft BlingFire'
+                url = 'https://github.com/lfoppiano/blingfire'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'lfoppiano'
+                        name = 'Luca Foppiano'
+                        email = 'luca@foppiano.org'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/lfoppiano/blingfire.git'
+                    developerConnection = 'scm:git:ssh://github.com/lfoppiano/blingfire.git'
+                    url = 'https://github.com/lfoppiano/blingfire'
+                }
+            }
+        }
+    }
+}

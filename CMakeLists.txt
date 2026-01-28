@@ -7,7 +7,35 @@ set (BLING_FIRE_VERSION "0.1.8")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/blingfireclient.library/inc)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/blingfireclient.library/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/blingfirecompile.library/inc)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/blingfirecompile.library/inc)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/blingfirecompile.library/src)
+
+# JNI headers
+if (JAVA_HOME)
+    include_directories(${JAVA_HOME}/include)
+    if (UNIX)
+        if (APPLE)
+            include_directories(${JAVA_HOME}/include/darwin)
+        else()
+             include_directories(${JAVA_HOME}/include/linux)
+        endif()
+    elseif(WIN32)
+        include_directories(${JAVA_HOME}/include/win32)
+    endif()
+endif()
+# JNI headers
+if (JAVA_HOME)
+    include_directories(${JAVA_HOME}/include)
+    if (UNIX)
+        if (APPLE)
+            include_directories(${JAVA_HOME}/include/darwin)
+        else()
+             include_directories(${JAVA_HOME}/include/linux)
+        endif()
+    elseif(WIN32)
+        include_directories(${JAVA_HOME}/include/win32)
+    endif()
+endif()
 
 IF (APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
   set (OPTIMIZE "-O3")
@@ -127,6 +155,18 @@ INSTALL(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+# JNI Library
+add_library(blingfirejni SHARED dist-java/src/main/c/blingfire_jni.cpp)
+target_include_directories(blingfirejni PRIVATE blingfiretools/blingfiretokdll)
+target_link_libraries(blingfirejni PRIVATE fsaClient)
+
+INSTALL(
+  TARGETS blingfirejni
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 include(CMakePackageConfigHelpers)
