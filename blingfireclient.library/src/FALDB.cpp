@@ -9,6 +9,7 @@
 #include "FALDB.h"
 #include "FAFsmConst.h"
 #include "FAUtils_cl.h"
+#include "BFendian.h"
 
 namespace BlingFire
 {
@@ -32,7 +33,7 @@ void FALDB::SetImage (const unsigned char * pImgDump)
     const unsigned char * pArr = pImgDump;
 
     // get the number of dumps
-    const int Count = *((const int *)pArr);
+    const int Count = from_le32(*((const int *)pArr));
     DebugLogAssert (0 < Count);
     pArr += sizeof (int);
 
@@ -41,7 +42,7 @@ void FALDB::SetImage (const unsigned char * pImgDump)
     LogAssert (0 <= Count && Count <= FALimits::MaxLdbDumpCount);
 
     // setup configuration image-dump, it is 0-th
-    int Offset = *((const int *)pArr);
+    int Offset = from_le32(*((const int *)pArr));
     DebugLogAssert (0 <= Offset);
     m_Conf.SetImage (pImgDump + Offset);
 
@@ -51,7 +52,7 @@ void FALDB::SetImage (const unsigned char * pImgDump)
     // setup dumps array
     for (int i = 0; i < Count; ++i) {
 
-        Offset = *((const int *)pArr);
+        Offset = from_le32(*((const int *)pArr));
         DebugLogAssert (0 <= Offset);
         pArr += sizeof (int);
 

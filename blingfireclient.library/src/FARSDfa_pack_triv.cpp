@@ -10,6 +10,7 @@
 #include "FAEncodeUtils.h"
 #include "FAUtils_cl.h"
 #include "FAFsmConst.h"
+#include "BFendian.h"
 
 namespace BlingFire
 {
@@ -33,7 +34,7 @@ void FARSDfa_pack_triv::SetImage (const unsigned char * pAutImage)
         unsigned int Offset = 0;
 
         // get dst size
-        m_DstSize = *(const int *)(m_pAutImage + Offset);
+        m_DstSize = from_le32(*(const int *)(m_pAutImage + Offset));
         Offset += sizeof (int);
         if (1 > m_DstSize || 4 < m_DstSize) {
             m_DstSize = FAFsmConst::TRIV_PACK_DEF_DST_SIZE;
@@ -42,15 +43,15 @@ void FARSDfa_pack_triv::SetImage (const unsigned char * pAutImage)
         // skip Ows table offset
         Offset += sizeof (int);
 
-        const unsigned int * pIwsCount = 
-            (const unsigned int *)(m_pAutImage + Offset);
+        const unsigned int pIwsCount =
+            from_le32(*(const unsigned int *)(m_pAutImage + Offset));
         Offset += sizeof (int);
 
         // see whether Iws should be remapped
-        m_RemapIws = 0 != (0x80000000 & *pIwsCount);
+        m_RemapIws = 0 != (0x80000000 & pIwsCount);
 
         // get alphabet size
-        m_IwCount = 0x7FFFFFFF & *pIwsCount;
+        m_IwCount = 0x7FFFFFFF & pIwsCount;
 
         // get pointer to the alphabet
         m_pIws = (const int *) (m_pAutImage + Offset);
@@ -62,7 +63,7 @@ void FARSDfa_pack_triv::SetImage (const unsigned char * pAutImage)
         if (m_RemapIws) {
 
             // get Iw2Iw dump size
-            const int Iw2IwSize = *(const int *)(m_pAutImage + Offset);
+            const int Iw2IwSize = from_le32(*(const int *)(m_pAutImage + Offset));
             Offset += sizeof (int);
 
             m_iw2iw.SetImage (m_pAutImage + Offset);
@@ -85,7 +86,7 @@ const int FARSDfa_pack_triv::GetMaxState () const
 const int FARSDfa_pack_triv::GetMaxIw () const
 {
     DebugLogAssert (m_pIws && 0 < m_IwCount && 0 == m_IwCount % 2);
-    return m_pIws [m_IwCount - 1];
+    return from_le32(m_pIws [m_IwCount - 1]);
 }
 
 
@@ -108,8 +109,8 @@ const int FARSDfa_pack_triv::
 
     for (int i = 0; i < m_IwCount; ++i) {
 
-        const int IwFrom = m_pIws [i++];
-        const int IwTo = m_pIws [i];
+        const int IwFrom = from_le32(m_pIws [i++]);
+        const int IwTo = from_le32(m_pIws [i]);
 
         for (int Iw = IwFrom; Iw <= IwTo; ++Iw) {
 
@@ -200,7 +201,7 @@ const int FARSDfa_pack_triv::GetDest (const int State, const int Iw) const
                 return -1;
             }
             // as DstCount - 1 was actually encoded
-            DstCount = 1 + *(const unsigned short *)pCurrPtr;
+            DstCount = 1 + from_le16(*(const unsigned short *)pCurrPtr);
             // skip DstCount
             pCurrPtr += sizeof (short);
             // find outgoing transition index, if any
@@ -213,7 +214,7 @@ const int FARSDfa_pack_triv::GetDest (const int State, const int Iw) const
             DebugLogAssert (sizeof (int) == IwSize);
 
             // as DstCount - 1 was actually encoded
-            DstCount = 1 + *(const unsigned int *)pCurrPtr;
+            DstCount = 1 + from_le32(*(const unsigned int *)pCurrPtr);
             // skip DstCount
             pCurrPtr += sizeof (int);
             // find outgoing transition index, if any
@@ -308,7 +309,7 @@ const int FARSDfa_pack_triv::GetDest (const int State, const int Iw) const
                 return -1;
             }
             // as RangeCount - 1 was actually encoded
-            RangeCount = 1 + *(const unsigned short *)pCurrPtr;
+            RangeCount = 1 + from_le16(*(const unsigned short *)pCurrPtr);
             // skip RangeCount
             pCurrPtr += sizeof (short);
             // find range index
@@ -334,7 +335,7 @@ const int FARSDfa_pack_triv::GetDest (const int State, const int Iw) const
             DebugLogAssert (sizeof (int) == IwSize);
 
             // as RangeCount - 1 was actually encoded
-            RangeCount = 1 + *(const unsigned int *)pCurrPtr;
+            RangeCount = 1 + from_le32(*(const unsigned int *)pCurrPtr);
             // skip RangeCount
             pCurrPtr += sizeof (int);
             // find range index
@@ -381,11 +382,11 @@ const int FARSDfa_pack_triv::GetDest (const int State, const int Iw) const
             if (NewIw == *pCurrPtr)
                 return State + sizeof (char) + sizeof (char) + OwSize;
         } else if (sizeof (short) == IwSize) {
-            if (NewIw == *(const unsigned short *)pCurrPtr)
+            if (NewIw == from_le16(*(const unsigned short *)pCurrPtr))
                 return State + sizeof (char) + sizeof (short) + OwSize;
         } else {
             DebugLogAssert (sizeof (int) == IwSize);
-            if ((unsigned int) NewIw == *(const unsigned int *)pCurrPtr)
+            if ((unsigned int) NewIw == from_le32(*(const unsigned int *)pCurrPtr))
                 return State + sizeof (char) + sizeof (int) + OwSize;
         }
 

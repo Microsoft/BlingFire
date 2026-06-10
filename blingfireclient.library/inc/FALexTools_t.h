@@ -16,6 +16,7 @@
 #include "FAWbdConfKeeper.h"
 #include "FALimits.h"
 #include "FASecurity.h"
+#include "BFendian.h"
 
 namespace BlingFire
 {
@@ -168,21 +169,21 @@ inline void FALexTools_t< Ty >::Validate () const
             // invalid action
             LogAssert (pAct && MinActSize <= ActSize);
 
-            const int LeftCx = pAct [0];
-            const int RightCx = pAct [1];
+            const int LeftCx = from_le32(pAct [0]);
+            const int RightCx = from_le32(pAct [1]);
             LogAssert (-FALimits::MaxTag <= LeftCx && LeftCx <= FALimits::MaxTag);
             LogAssert (-FALimits::MaxTag <= RightCx && RightCx <= FALimits::MaxTag);
 
             int i = ActSize;
 
             // just one tag
-            if (MinActSize == ActSize && 0 != pAct [MinActSize - 1]) {
+            if (MinActSize == ActSize && 0 != from_le32(pAct [MinActSize - 1])) {
                 continue;
             // delimiter and fn(s), but no tag
-            } else if (MinActSize < ActSize && 0 == pAct [MinActSize - 1]) {
+            } else if (MinActSize < ActSize && 0 == from_le32(pAct [MinActSize - 1])) {
                 i = MinActSize;
             // tag, delimiter and fn(s)
-            } else if (MinActSize + 1 < ActSize && 0 == pAct [MinActSize]) {
+            } else if (MinActSize + 1 < ActSize && 0 == from_le32(pAct [MinActSize])) {
                 i = MinActSize + 1;
             } else {
                 // invalid action
@@ -191,7 +192,7 @@ inline void FALexTools_t< Ty >::Validate () const
 
             // validate the function id
             for (; i < ActSize; ++i) {
-                const int FnId = pAct [i];
+                const int FnId = from_le32(pAct [i]);
                 // bad function id
                 LogAssert (0 <= FnId && (unsigned) FnId < m_Fn2IniSize);
                 LogAssert (m_pFn2Ini && 0 <= m_pFn2Ini [FnId]);
@@ -300,9 +301,9 @@ const int FALexTools_t< Ty >::
             const int ActSize = m_pActs->Get (Ow, &pAct);
             DebugLogAssert (MinActSize <= ActSize && pAct);
 
-            const int LeftCx = pAct [0];
-            const int RightCx = pAct [1];
-            const int Tag = pAct [2];
+            const int LeftCx = from_le32(pAct [0]);
+            const int RightCx = from_le32(pAct [1]);
+            const int Tag = from_le32(pAct [2]);
 
             // From position in the data 
             int FromPos2 = FromPos + LeftCx;
@@ -349,7 +350,7 @@ const int FALexTools_t< Ty >::
             // apply functions, if any
             for (; FnIdx < ActSize; ++FnIdx) {
 
-                const int FnId = pAct [FnIdx];
+                const int FnId = from_le32(pAct [FnIdx]);
                 DebugLogAssert (0 <= FnId && (unsigned) FnId < m_Fn2IniSize);
 
                 const int FnIni = m_pFn2Ini [FnId];

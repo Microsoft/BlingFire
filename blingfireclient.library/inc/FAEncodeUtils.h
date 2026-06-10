@@ -9,6 +9,7 @@
 
 #include "FAConfig.h"
 #include "FAFsmConst.h"
+#include "BFendian.h"
 
 
 // Encodes int with variable-length prefix code
@@ -299,13 +300,13 @@
                                                              \
     } else if (sizeof (short) == SizeOfValue) {              \
                                                              \
-        Value = *(const unsigned short *)(pDump + Offset);   \
+        Value = from_le16(*(const unsigned short *)(pDump + Offset));   \
                                                              \
     } else {                                                 \
                                                              \
         DebugLogAssert (sizeof (int) == SizeOfValue);                \
                                                              \
-        Value = *(const unsigned int *)(pDump + Offset);     \
+        Value = from_le32(*(const unsigned int *)(pDump + Offset));     \
     }                                                        \
 }
 

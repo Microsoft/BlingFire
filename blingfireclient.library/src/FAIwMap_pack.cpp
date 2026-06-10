@@ -7,6 +7,7 @@
 #include "blingfire-client_src_pch.h"
 #include "FAConfig.h"
 #include "FAIwMap_pack.h"
+#include "BFendian.h"
 #include <algorithm>
 #include <limits>
 
@@ -46,10 +47,10 @@ void FAIwMap_pack::SetImage (const unsigned char * pImage)
         unsigned int Offset = 0;
 
         // get NewIw + 1 size
-        m_SizeOfNewIw = *(const int *)(pImage + Offset);
+        m_SizeOfNewIw = from_le32(*(const int *)(pImage + Offset));
         Offset += sizeof (int);
         // number of intervals
-        m_IntervalCount = *(const int *)(pImage + Offset);
+        m_IntervalCount = from_le32(*(const int *)(pImage + Offset));
         Offset += sizeof (int);
         // beginnings of the intervals
         m_pArrFromIw = (const int *)(pImage + Offset);
@@ -65,7 +66,7 @@ void FAIwMap_pack::SetImage (const unsigned char * pImage)
             // get pair temporary pointer
             const int * pPair = m_pArrToIwOffset + ((m_IntervalCount - 1) << 1);
             // get ending of the interval
-            const int EndIw = *pPair;
+            const int EndIw = from_le32(*pPair);
             LogAssert (0 <= EndIw);
 
             // allocate memory for the cache

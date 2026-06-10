@@ -16,6 +16,7 @@
 #include "FAMultiMap_pack_mph.h"
 #include "FAMultiMap_pack_fixed.h"
 #include "FALimits.h"
+#include "BFendian.h"
 
 namespace BlingFire
 {
@@ -65,25 +66,25 @@ void FAWbdConfKeeper::Initialize (const FALDB * pLDB, const int * pValues, const
 
     for (int i = 0; i < Size; ++i) {
 
-        const int Param = pValues [i];
+        const int Param = from_le32(pValues [i]);
 
         switch (Param) {
 
         case FAFsmConst::PARAM_MAP_MODE:
         {
-            const int MMType = pValues [++i];
+            const int MMType = from_le32(pValues [++i]);
             LogAssert (FAFsmConst::MODE_PACK_TRIV == MMType);
             break;
         }
         case FAFsmConst::PARAM_DEPTH:
         {
-            m_MaxDepth = pValues [++i];
+            m_MaxDepth = from_le32(pValues [++i]);
             LogAssert (0 <= m_MaxDepth);
             break;
         }
         case FAFsmConst::PARAM_MAX_LENGTH:
         {
-            m_MaxTokenLength = pValues [++i];
+            m_MaxTokenLength = from_le32(pValues [++i]);
             LogAssert (0 <= m_MaxTokenLength);
             break;
         }
@@ -94,14 +95,14 @@ void FAWbdConfKeeper::Initialize (const FALDB * pLDB, const int * pValues, const
         }
         case FAFsmConst::PARAM_FSM_TYPE:
         {
-            FsmType = pValues [++i];
+            FsmType = from_le32(pValues [++i]);
             LogAssert (FAFsmConst::TYPE_MOORE_DFA == FsmType ||
                 FAFsmConst::TYPE_MOORE_MULTI_DFA == FsmType);
             break;
         }
         case FAFsmConst::PARAM_FSM:
         {
-            const int DumpNum = pValues [++i];
+            const int DumpNum = from_le32(pValues [++i]);
             pFsmDump = pLDB->GetDump (DumpNum);
             LogAssert (pFsmDump);
 
@@ -116,7 +117,7 @@ void FAWbdConfKeeper::Initialize (const FALDB * pLDB, const int * pValues, const
         }
         case FAFsmConst::PARAM_MULTI_MAP:
         {
-            const int DumpNum = pValues [++i];
+            const int DumpNum = from_le32(pValues [++i]);
             const unsigned char * pDump = pLDB->GetDump (DumpNum);
             LogAssert (pDump);
 
@@ -131,7 +132,7 @@ void FAWbdConfKeeper::Initialize (const FALDB * pLDB, const int * pValues, const
         }
         case FAFsmConst::PARAM_CHARMAP:
         {
-            const int DumpNum = pValues [++i];
+            const int DumpNum = from_le32(pValues [++i]);
             const unsigned char * pDump = pLDB->GetDump (DumpNum);
             LogAssert (pDump);
 
@@ -145,7 +146,7 @@ void FAWbdConfKeeper::Initialize (const FALDB * pLDB, const int * pValues, const
         }
         case FAFsmConst::PARAM_ACT_DATA:
         {
-            const int DumpNum = pValues [++i];
+            const int DumpNum = from_le32(pValues [++i]);
             const unsigned char * pDump = pLDB->GetDump (DumpNum);
             LogAssert (pDump);
 
@@ -159,43 +160,43 @@ void FAWbdConfKeeper::Initialize (const FALDB * pLDB, const int * pValues, const
         }
         case FAFsmConst::PARAM_PUNKT:
         {
-            m_TagPunkt = pValues [++i];
+            m_TagPunkt = from_le32(pValues [++i]);
             break;
         }
         case FAFsmConst::PARAM_EOS:
         {
-            m_TagEos = pValues [++i];
+            m_TagEos = from_le32(pValues [++i]);
             break;
         }
         case FAFsmConst::PARAM_EOP:
         {
-            m_TagEop = pValues [++i];
+            m_TagEop = from_le32(pValues [++i]);
             break;
         }
         case FAFsmConst::PARAM_WORD:
         {
-            m_TagWord = pValues [++i];
+            m_TagWord = from_le32(pValues [++i]);
             break;
         }
         case FAFsmConst::PARAM_XWORD:
         {
-            m_TagXWord = pValues [++i];
+            m_TagXWord = from_le32(pValues [++i]);
             break;
         }
         case FAFsmConst::PARAM_SEG:
         {
-            const int Tag = pValues [++i];
+            const int Tag = from_le32(pValues [++i]);
             m_TagSeg = Tag;
             break;
         }
         case FAFsmConst::PARAM_IGNORE:
         {
-            m_TagIgnore = pValues [++i];
+            m_TagIgnore = from_le32(pValues [++i]);
             break;
         }
         case FAFsmConst::PARAM_MAX_TAG:
         {
-            m_MaxTag = pValues [++i];
+            m_MaxTag = from_le32(pValues [++i]);
             break;
         }
 
@@ -270,7 +271,7 @@ inline void FAWbdConfKeeper::CalcFnIniStates ()
             int i = 2;
             // find the place where the function ids start
             for (;i < ActSize; ++i) {
-                if (0 == pAct [i] && i + 1 < ActSize) {
+                if (0 == from_le32(pAct [i]) && i + 1 < ActSize) {
                     // skip 0-delimiter
                     i++;
                     break;
@@ -279,7 +280,7 @@ inline void FAWbdConfKeeper::CalcFnIniStates ()
             // update the maximum function id value
             for (; i < ActSize; ++i) {
 
-                const int FnId = pAct [i];
+                const int FnId = from_le32(pAct [i]);
                 // bad function id
                 LogAssert (0 <= FnId);
 

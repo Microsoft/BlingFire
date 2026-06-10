@@ -11,6 +11,7 @@
 #include "FASetImageA.h"
 #include "FAEncodeUtils.h"
 #include "FAUtils_cl.h"
+#include "BFendian.h"
 
 namespace BlingFire
 {
@@ -76,16 +77,16 @@ inline const int FAIwMap_pack::GetNewIw (const int OldIw) const
     }
 
     // get beginning of the interval
-    const int FromIw = m_pArrFromIw [IntervalIdx];
+    const int FromIw = from_le32(m_pArrFromIw [IntervalIdx]);
     DebugLogAssert (FromIw <= OldIw);
 
     // get pair temporary pointer
     const int * pPair = m_pArrToIwOffset + (IntervalIdx << 1);
     // get ending of the interval
-    const int EndIw = *pPair;
+    const int EndIw = from_le32(*pPair);
     pPair++;
     // get encoded NewIws' offset for this interval
-    const int IntervalOffset = *pPair;
+    const int IntervalOffset = from_le32(*pPair);
     DebugLogAssert (0 <= IntervalOffset);
 
     // bigger than the biggest value in this interval
