@@ -11,6 +11,7 @@
 #include "FASetImageA.h"
 #include "FAUtils_cl.h"
 #include "FASecurity.h"
+#include "BFendian.h"
 
 namespace BlingFire
 {
@@ -111,7 +112,7 @@ inline const int FAChains_pack_triv::
     } else if (sizeof (short) == m_SizeOfValue) {
 
         // get the number of elements
-        Count = *(const short *)(m_pImage + Offset);
+        Count = from_le16(*(const short *)(m_pImage + Offset));
 
         if (NULL != pValues && MaxCount >= Count) {
             // get the pointer to the encoded elements
@@ -119,21 +120,29 @@ inline const int FAChains_pack_triv::
                 (const short *)(m_pImage + Offset + sizeof (short));
             // copy elements
             for (int i = 0; i < Count; ++i) {
-                const int Val = pEncodedVals [i];
+                const int Val = from_le16(pEncodedVals [i]);
                 pValues [i] = Val;
             }
         }
     } else {
 
         // get the number of elements
-        Count = *(const int *)(m_pImage + Offset);
+        Count = from_le32(*(const int *)(m_pImage + Offset));
 
         if (NULL != pValues && MaxCount >= Count) {
             // get the pointer to the encoded elements
             const int * pEncodedVals = 
                 (const int *)(m_pImage + Offset + sizeof (int));
+
             // copy elements
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+            for (int i = 0; i < Count; ++i) {
+                const int Val = from_le32(pEncodedVals [i]);
+                pValues [i] = Val;
+            }
+#else  // __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
             memcpy (pValues, pEncodedVals, sizeof (int) * Count);
+#endif // __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
         }
     }
 
@@ -153,7 +162,7 @@ inline const int FAChains_pack_triv::
     }
 
     // get the number of elements
-    const int Count = *(const int *)(m_pImage + Offset);
+    const int Count = from_le32(*(const int *)(m_pImage + Offset));
     // get the pointer to the encoded elements
     const int * pEncodedVals = 
         (const int *)(m_pImage + Offset + sizeof (int));
@@ -194,27 +203,27 @@ inline const int FAChains_pack_triv::
     } else if (sizeof (short) == m_SizeOfValue) {
 
         // get the number of elements
-        Count = *(const short *)(m_pImage + Offset);
+        Count = from_le16(*(const short *)(m_pImage + Offset));
 
         if (Idx < Count) {
             // get the pointer to the encoded elements
             const short * pEncodedVals = 
                 (const short *)(m_pImage + Offset + sizeof (short));
             // return the value
-            const int Value = pEncodedVals [Idx];
+            const int Value = from_le16(pEncodedVals [Idx]);
             return Value;
         }
     } else {
 
         // get the number of elements
-        Count = *(const int *)(m_pImage + Offset);
+        Count = from_le32(*(const int *)(m_pImage + Offset));
 
         if (Idx < Count) {
             // get the pointer to the encoded elements
             const int * pEncodedVals = 
                 (const int *)(m_pImage + Offset + sizeof (int));
             // return the value
-            const int Value = pEncodedVals [Idx];
+            const int Value = from_le32(pEncodedVals [Idx]);
             return Value;
         }
     }
@@ -266,7 +275,7 @@ inline const int FAChains_pack_triv::
     } else if (sizeof (short) == m_SizeOfValue) {
 
         // get the number of elements
-        Count = *(const short *)(m_pImage + Offset);
+        Count = from_le16(*(const short *)(m_pImage + Offset));
 
         // get the pointer to the encoded elements
         const short * pEncodedVals = \
@@ -285,12 +294,12 @@ inline const int FAChains_pack_triv::
         if (0 > Idx)
             return -1;
 
-        const int FoundValue = pEncodedVals [Idx];
+        const int FoundValue = from_le16(pEncodedVals [Idx]);
         return FoundValue;
 
     } else {
         // get the number of elements
-        Count = *(const int *)(m_pImage + Offset);
+        Count = from_le32(*(const int *)(m_pImage + Offset));
 
         // get the pointer to the encoded elements
         const int * pEncodedVals = \
@@ -302,7 +311,7 @@ inline const int FAChains_pack_triv::
         if (0 > Idx)
             return -1;
 
-        const int FoundValue = pEncodedVals [Idx];
+        const int FoundValue = from_le32(pEncodedVals [Idx]);
         return FoundValue;
     }
 }

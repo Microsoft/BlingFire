@@ -8,6 +8,7 @@
 #include "FAConfig.h"
 #include "FAMultiMap_pack.h"
 #include "FAEncodeUtils.h"
+#include "BFendian.h"
 
 namespace BlingFire
 {
@@ -26,11 +27,11 @@ void FAMultiMap_pack::SetImage (const unsigned char * pDump)
         unsigned int Offset = 0;
 
         // get max Key
-        m_MaxKey = *(const unsigned int *)(pDump + Offset);
+        m_MaxKey = from_le32(*(const unsigned int *)(pDump + Offset));
         Offset += sizeof (int);
 
         // get size of offset
-        m_SizeOfOffset = *(const unsigned int *)(pDump + Offset);
+        m_SizeOfOffset = from_le32(*(const unsigned int *)(pDump + Offset));
         Offset += sizeof (int);
 
         LogAssert (sizeof (char) <= (unsigned int) m_SizeOfOffset && \
